@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div style="text-align: center; font-size: x-large;">Login Form</div>
+<div>
+    <form action="{% url 'login' %}" method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        {% if messages %}
+        <div class="alert alert-danger" style="color: red;">
+            <ul>
+                {% for message in messages %}
+                <li>{{ message }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        <div class="button-container">
+            <button type="submit">Sign in</button>
+            <a href="{% url 'register' %}">Register</a>
+            <a href="{% url 'password_reset' %}">Reset Password</a>
+        </div>
+    </form>
+</div>
+{% endblock %}

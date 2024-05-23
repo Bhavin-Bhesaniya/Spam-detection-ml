@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<div>
+    <h1 style="text-align: center; margin-bottom: 20px;">API Documentation</h1>
+    <p>API spam message classification is a service designed to identify and categorize messages as spam or legitimate. It serves various use cases, such as email filtering, comment moderation, and chat message screening, helping businesses and developers automatically detect and filter out unwanted or malicious messages.</p><br>
+    
+    <h3 style="margin-top: 10px; margin-bottom: 5px;">How It Works</h3>
+    <strong>Input Message:</strong> Users send a message to the API endpoint for classification, typically in JSON format, including the message text and the selected model.<br>
+    <strong>Model Analysis:</strong> The chosen machine learning model analyzes the input message, looking for patterns, keywords, and indicators to determine if it's spam or legitimate.<br>
+    <strong>Classification Result:</strong> The model provides a classification result, indicating whether the message is spam or legitimate. The API returns this result to the user.<br><br>
+
+    <h3 style="margin-top: 10px; margin-bottom: 5px;">API Endpoints - </h3>
+    <strong>POST api/spam_classifier:</strong> Classify user messages for spam. Provide a JSON message in user_message and select a model in user_selected_model.<br>
+    <p><strong>Authorization:</strong> Bearer your_access_token     To get token register yourself</p>
+    <pre>
+    {
+        'user_message': 'Your message',
+        'user_selected_model': 'select a model from below list' 
+        //['rfmodel.pkl', 'mnbmodl.pkl']
+    }
+    </pre>
+</div>
+{% endblock %}

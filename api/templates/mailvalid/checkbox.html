@@ -1,0 +1,11 @@
+{% extends 'base.html' %}
+
+{% block title %}Email Verification{% endblock %}
+
+{% block content %}
+<h1>Check Your Email Inbox</h1>
+<p>A verification link has been sent to your email address.</p>
+<p>Please check your email inbox and follow instructions to verify your email.</p>
+<p>If you haven't received the email, please also check your spam or junk folder.</p>
+<p style="margin-top: 20px;">Already a member? <a href="{% url 'login' %}">Sign in now</a></p>
+{% endblock %}

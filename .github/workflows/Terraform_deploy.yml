@@ -1,0 +1,80 @@
+name: SPAM Detection CI/CD
+
+on:
+  push:
+    branches: ["main"]
+
+env:
+  ECR_REGISTRY_1: ${{ secrets.ECR_REGISTRY_1 }}
+  ECR_REGISTRY_2: ${{ secrets.ECR_REGISTRY_2 }}
+  IMAGE_TAG: ${{ github.run_number }}
+  REPOSITORY_1: spam-detection-webapp
+  REPOSITORY_2: spam-mysqldb
+  DB_NAME: ${{ secrets.DB_NAME }}
+  DB_USER: ${{ secrets.DB_USER }}
+  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+  DB_HOST: ${{ secrets.DB_HOST }}
+
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Source
+        uses: actions/checkout@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: 'ap-south-1'
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+
+      - name: Build Image
+        run: |
+          docker-compose build spam-mysqldb
+          docker-compose build spam-detection-webapp
+
+      - name: Tag and push image to ECR_REGISTRY
+        run: |
+          docker tag spam-detection-webapp:latest ${{ secrets.ECR_REGISTRY_1 }}:latest 
+          docker push ${{ secrets.ECR_REGISTRY_1 }}:latest 
+
+          docker tag spam-mysqldb:latest ${{ secrets.ECR_REGISTRY_2 }}:latest
+          docker push ${{ secrets.ECR_REGISTRY_2 }}:latest 
+
+#   terraform:
+#     needs: build
+#     name: Terraform Creation
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v3
+
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v2
+
+#       - name: Terraform Init
+#         run: terraform init
+#         working-directory: ./terraform
+
+#       - name: Terraform Validate
+#         run: terraform validate
+#         working-directory: ./terraform
+
+#       - name: Terraform Plan
+#         run: terraform plan
+#         working-directory: ./terraform
+#         env:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+
+#       - name: Terraform Apply
+#         run: |
+#           terraform apply -auto-approve
+#         working-directory: ./terraform

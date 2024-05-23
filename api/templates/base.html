@@ -1,0 +1,43 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %} Spam Message Detection Using ML {% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <link rel="icon" href="{% static 'favicon.ico' %}">
+</head>
+<body>
+    <header>
+        <nav>
+            <ul>
+                {% if user.is_authenticated %}
+                    <h1 class="welcome-heading">Welcome {{ user.name|escape }}</h1>
+                {% elif request.path == '/register'%}
+                    <li><a href="{% url 'index' %}">Home</a></li>
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                    <li><a href="{% url 'services' %}">Service</a></li>
+                {% elif request.path == '/login'%}
+                    <li><a href="{% url 'index' %}">Home</a></li>
+                    <li><a href="{% url 'register' %}">Register</a></li>
+                    <li><a href="{% url 'services' %}">Service</a></li>        
+                {% else %}
+                    <li><a href="{% url 'index' %}">Home</a></li>
+                    <li><a href="{% url 'register' %}">Register</a></li>
+                    <li><a href="{% url 'login' %}">Login</a></li>
+                    <li><a href="{% url 'services' %}">Service</a></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </header>
+    
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+    <footer>
+        <p>&copy; 2023 Spam Message Detection</p>
+    </footer>
+</body>
+</html>

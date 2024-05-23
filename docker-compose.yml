@@ -1,0 +1,35 @@
+version: "3.11"
+
+services:
+
+  spam-detection-webapp:
+    build:
+      context: .
+      dockerfile: ./Docker/web/Dockerfile
+    image: spam-detection-webapp:latest
+    # depends_on:
+    #   - spam-mysqldb
+    ports:
+      - "8000:8000"
+    env_file:
+      - ./.env
+
+  spam-mysqldb:
+    build:
+      context: .
+      dockerfile: ./Docker/mysql/Dockerfile
+    image: spam-mysqldb:latest
+    volumes:
+      - mysql_data:/var/lib/mysql/
+    environment:
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
+      MYSQL_HOST: ${DB_HOST}
+    ports:
+      - "3306:3306"
+    env_file:
+      - ./.env
+
+volumes:
+  mysql_data:

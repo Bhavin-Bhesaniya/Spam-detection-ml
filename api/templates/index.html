@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div>
+    <form method="post" enctype="multipart/form-data" class="custom-form mt-4 pt-2 mb-lg-0 mb-5" role="search">
+        {% csrf_token %}
+        {{ user_input_form.user_input.label_tag }}
+        {{ user_input_form.user_input }}
+        {% if user_input_form.user_input.errors %}
+        <div class="alert alert-danger">
+            {{ user_input_form.user_input.errors.0 }}
+        </div>
+        {% endif %}
+        {{ user_input_form.user_selected_model.label_tag }}
+        {{ user_input_form.user_selected_model }}
+        {{ user_input_form.email_files.label_tag }}
+        {{ user_input_form.email_files }}
+        {% if user_input_form.email_files.errors %}
+        <div class="alert alert-danger">
+            {{ user_input_form.email_files.errors.0 }}
+        </div>
+        {% endif %}
+        <div class="button-message-container">
+            <button type="submit">Submit</button>
+            <h3 class="message">
+                {% if result_message %}
+                    {{ result_message|escape }}
+                {% endif %}
+            </h3>
+            <h2 style="color: rgb(101, 5, 5);">
+                {% if error_message %}
+                    <div class="alert alert-danger">
+                        {{ error_message|escape }}
+                    </div>
+                {% endif %}
+            </h2>
+        </div>
+    </form>
+</div>
+{% endblock %}

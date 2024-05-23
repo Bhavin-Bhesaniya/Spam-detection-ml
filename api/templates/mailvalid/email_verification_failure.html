@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+
+{% block title %}Email Verification Failure{% endblock %}
+
+{% block content %}
+<h1>Email Verification Failed</h1>
+<p>Sorry, we couldn't verify your email address. The verification link may be invalid or expired.</p>
+<p style="margin-bottom: 20px;">Please contact support for assistance.</p>
+<form method="post" action="{% url 'regenerate_verification_email' %}">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Regenerate Verification Email</button>
+</form>
+<p style="margin-top: 10px;"><a href="{% url 'login' %}">Click here for login</a></p>
+{% endblock %}

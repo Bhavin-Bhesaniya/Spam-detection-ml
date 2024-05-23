@@ -1,0 +1,17 @@
+django
+python-dotenv
+mysqlclient
+nltk
+pandas
+scikit-learn==1.3
+matplotlib
+djangorestframework
+django_ratelimit
+djangorestframework-simplejwt
+django-cors-headers
+gunicorn
+whitenoise
+python-dotenv
+transformers
+torch
+urlextract

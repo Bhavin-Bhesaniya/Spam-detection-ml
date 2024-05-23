@@ -1,0 +1,40 @@
+<!-- home.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div style="text-align: center; font-size: x-large; ">Home Page</div>
+{% if user.is_authenticated %}
+    {% if token_generated_today %}
+    <p style="margin-top: 10px;">Token has already been generated today and mailed to your email id.</p>
+    <p>You can generate token once in a day. If you are facing any problem, email us at - bhavinmail23@gmail.com</p>
+    <p>Please try again tomorrow.</p>
+    {% else %}
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary" name="generate_token">Generate Your Token</button>
+    </form>
+    {% endif %}
+
+    <form id="payment-form" method="post">
+        {% csrf_token %}
+        <button type="button" class="btn btn-primary" ><a href="{% url 'payment' %}">Pay Now (10 INR)</a></button>
+    </form>
+
+
+    <div class="token-container">
+        <h2>JWT Tokens</h2>
+        <div class="token">
+            <strong>Access Token:</strong></p>
+            <div width="20px;">{{ jwttoken.access }}</div>
+        </div>
+        <div class="token">
+            <p><strong>Refresh Token:</strong></p>
+            <div width="20px;">{{ jwttoken.refresh }}</div>
+        </div>
+    </div>
+{% endif %}
+
+<div class="button-container">
+    <a href="{% url 'logout' %}">Logout</a>
+</div>
+{% endblock %}

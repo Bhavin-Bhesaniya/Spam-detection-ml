@@ -1,0 +1,58 @@
+# name: SPAM Detection CI/CD
+
+# on:
+#   push:
+#     branches: [ "main" ]
+
+# jobs:
+#   build:
+#     runs-on: ubuntu-latest
+
+#     steps:
+#     - uses: actions/checkout@v3
+#     - name: Login Dockerhub
+#       env:
+#         DOCKER_USERNAME: ${{secrets.DOCKER_USERNAME}}
+#         DOCKER_PASSWORD: ${{secrets.DOCKER_PASSWORD}}
+#       run: docker login -u $DOCKER_USERNAME -p $DOCKER_PASSWORD
+    
+#     - name: Remove old Docker images
+#       run: docker system prune -a --force
+    
+#     - name: Build the Docker image
+#       run: | 
+#           docker-compose build spam-detection-webapp 
+#           docker-compose build spam-mysqldb
+    
+#     - name: Tag the Docker image
+#       run: |
+#         docker tag spam-detection-webapp docker.io/cyberbhavin/spam-detection-webapp:latest
+#         docker tag spam-mysqldb docker.io/cyberbhavin/spam-mysqldb:latest
+
+#     - name: Push to Docker hub
+#       run: |
+#         docker push cyberbhavin/spam-detection-webapp:latest
+#         docker push cyberbhavin/spam-mysqldb:latest
+      
+#   deploy:
+#     needs: build
+#     runs-on: self-hosted
+    
+#     steps:     
+#       - name: Pull image from dockerhub
+#         run: |
+#           docker pull cyberbhavin/spam-detection-webapp:latest
+#           docker pull cyberbhavin/spam-mysqldb:latest
+          
+#       - name: Delete Old Container and Images
+#         run: |
+#           docker rm -f spam-detection-webapp
+#           docker rm -f spam-mysqldb
+#           docker images --filter dangling=true -q | xargs -r docker rmi
+      
+#       - name: Run new Container
+#         run: |
+#           docker volume create mysql_data
+#           docker run -d -p 3307:3306 --name spam-mysqldb -v mysql_data:/var/lib/mysql/ -e MYSQL_ROOT_PASSWORD=SpamMysql@1234 cyberbhavin/spam-mysqldb:latest
+#           docker run -d -p 3307:3306 --name spam-mysqldb -v mysql_data:/var/lib/mysql/ -e MYSQL_ROOT_PASSWORD={{secrets.MYSQL_ROOT_PASSWORD}} cyberbhavin/spam-mysqldb:latest
+#           docker run -d -p 8000:8000 --name spam-detection-webapp --link spam-mysqldb:external-mysql cyberbhavin/spam-detection-webapp:latest
