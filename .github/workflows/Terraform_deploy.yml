@@ -42,11 +42,11 @@ jobs:
 
       - name: Tag and push image to ECR_REGISTRY
         run: |
-          docker tag spam-detection-webapp:latest ${{ secrets.ECR_REGISTRY_1 }}:latest 
-          docker push ${{ secrets.ECR_REGISTRY_1 }}:latest 
+          docker tag spam-detection-webapp:latest ${{ secrets.ECR_REGISTRY_1 }} 
+          docker push ${{ secrets.ECR_REGISTRY_1 }} 
 
-          docker tag spam-mysqldb:latest ${{ secrets.ECR_REGISTRY_2 }}:latest
-          docker push ${{ secrets.ECR_REGISTRY_2 }}:latest 
+          docker tag spam-mysqldb:latest ${{ secrets.ECR_REGISTRY_2 }}
+          docker push ${{ secrets.ECR_REGISTRY_2 }} 
 
 #   terraform:
 #     needs: build
