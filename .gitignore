@@ -4,9 +4,10 @@ __pycache__/
 *$py.class
 terraform/.terraform.lock.hcl
 terraform/.terraform
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
 SPAM_EC2_KEYPAIR.pem
 nginx.txt
-terraform
 SPAM_SMS.ipynb
 Fine_Tunning_Default_Model.ipynb
 Message.txt
