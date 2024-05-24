@@ -184,18 +184,10 @@ resource "aws_iam_role_policy_attachment" "ecs_task_execution_role_policy" {
 
 
 
-
-resource "aws_ecr_repository" "spam_detection_webapp" {
-  name = "spam-detection-webapp"
-}
 data "aws_ecr_repository" "spam_detection_webapp" {
   name = "spam-detection-webapp"
 }
 
-
-resource "aws_ecr_repository" "spam_mysqldb" {
-  name = "spam-mysqldb"
-}
 data "aws_ecr_repository" "spam_mysqldb" {
   name = "spam-mysqldb"
 }
@@ -211,7 +203,7 @@ resource "aws_ecs_task_definition" "spam_mysqldb" {
 [
   {
     "name": "spam-mysqldb",
-    "image": "${data.aws_ecr_repository.spam_mysqldb.repository_url}:latest",
+    "image": "348949640551.dkr.ecr.ap-south-1.amazonaws.com/spam-mysqldb:latest",
     "portMappings": [
       {
         "containerPort": 3306,
@@ -252,7 +244,7 @@ DEFINITION
   network_mode             = "awsvpc"
   cpu                      = 1024
   memory                   = 2048
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role.name
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 }
 
 resource "aws_ecs_task_definition" "spam_detection_webapp" {
@@ -261,13 +253,14 @@ resource "aws_ecs_task_definition" "spam_detection_webapp" {
   [
   {
     "name": "spam-detection-webapp",
-    "image": "${data.aws_ecr_repository.spam_detection_webapp.repository_url}:latest",
+    "image": "348949640551.dkr.ecr.ap-south-1.amazonaws.com/spam-detection-webapp:latest",
     "portMappings": [
       {
         "containerPort": 8000,
         "hostPort": 8000
       }
     ],
+
     "environment": [
       {
         "name": "DJANGO_SETTINGS_MODULE",
@@ -289,9 +282,6 @@ resource "aws_ecs_task_definition" "spam_detection_webapp" {
         "name": "DB_HOST",
         "value": "spam-mysqldb"
       }
-    ],
-    "links": [
-      "spam-mysqldb:external-mysql"
     ]
   }
 ]
@@ -300,7 +290,7 @@ DEFINITION
   network_mode             = "awsvpc"
   cpu                      = 1024
   memory                   = 2048
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role.name
+  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
 }
 
 
