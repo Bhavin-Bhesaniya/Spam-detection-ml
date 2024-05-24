@@ -239,7 +239,7 @@ class RegenerateVerificationEmailView(View):
             logger.info(f'User with IP {request.META["REMOTE_ADDR"]} accessed the email regeneration page. User is already authenticated.')
             return redirect('home')
         logger.info(f'User with IP {request.META["REMOTE_ADDR"]} accessed the email regeneration page.')
-        return redirect('register')
+        return render(request, 'mailvalid/email_verification_failure.html', {'form': form})
 
     def post(self, request):
         form = RegenerateResetEmailForm(request.POST)

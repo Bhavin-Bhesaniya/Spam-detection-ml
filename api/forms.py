@@ -74,6 +74,7 @@ class RegenerateResetEmailForm(forms.ModelForm):
     class Meta:
         model = MyUser
         fields = ['email']
+    
 
 
 class ResetPasswordForm(forms.Form):

@@ -13,8 +13,7 @@ Message.txt
 rzp.csv
 README copy.md
 SPAM_PROJECT_accessKeys.csv
-fine_tuned_model.pkl
-fine_tuned_tokenizer.pkl
+
 
 # C extensions
 *.so

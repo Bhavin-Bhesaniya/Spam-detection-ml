@@ -7,8 +7,6 @@ services:
       context: .
       dockerfile: ./Docker/web/Dockerfile
     image: spam-detection-webapp:latest
-    # depends_on:
-    #   - spam-mysqldb
     ports:
       - "8000:8000"
     env_file:
@@ -27,7 +25,7 @@ services:
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD}
       MYSQL_HOST: ${DB_HOST}
     ports:
-      - "3306:3306"
+      - "3307:3306"
     env_file:
       - ./.env
 

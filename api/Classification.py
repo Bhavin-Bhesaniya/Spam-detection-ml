@@ -19,8 +19,8 @@ model_names = ['rfmodel.pkl', 'knmodel.pkl', 'gbdtmodel.pkl','mnbmodel.pkl']
 models = {model_name: joblib.load(f'Model/{model_name}') for model_name in model_names}
 
 # Default model
-fine_tune_model = pickle.load(open('Model/fine_tuned_model.pkl', 'rb'))
-fine_tune_tokenizer = pickle.load(open('Model/fine_tuned_tokenizer.pkl', 'rb'))
+# fine_tune_model = pickle.load(open('Model/fine_tuned_model.pkl', 'rb'))
+# fine_tune_tokenizer = pickle.load(open('Model/fine_tuned_tokenizer.pkl', 'rb'))
 
 YOUR_API_KEY = os.environ.get('VIRUS_TOTAL_API_KEY')
 
@@ -163,18 +163,18 @@ def classify_with_selected_model(email_content, select_model):
             df = pd.DataFrame(user_data)
             df.to_csv("Model/user_insert_value.csv", mode='a', header=False, index=False)
             return result_message
-    else:
-        return classify_with_default_model(email_content)
+    # else:
+    #     return classify_with_default_model(email_content)
 
 
-def classify_with_default_model(email_content):
-    inputs = fine_tune_tokenizer(email_content, return_tensors="pt", padding=True, truncation=True, max_length=128) 
-    with torch.no_grad():
-        outputs = fine_tune_model(**inputs)
-        logits = outputs.logits
-    result = torch.argmax(logits, dim=1).item()
-    result_message = "Spam, " if result == 1 else "Not spam, "
-    return result_message
+# def classify_with_default_model(email_content):
+#     inputs = fine_tune_tokenizer(email_content, return_tensors="pt", padding=True, truncation=True, max_length=128) 
+#     with torch.no_grad():
+#         outputs = fine_tune_model(**inputs)
+#         logits = outputs.logits
+#     result = torch.argmax(logits, dim=1).item()
+#     result_message = "Spam, " if result == 1 else "Not spam, "
+#     return result_message
         
 
 def classify_spam(email_content, user_selected_model=None, file_instance=None):
@@ -182,9 +182,9 @@ def classify_spam(email_content, user_selected_model=None, file_instance=None):
     if user_selected_model is not None:
         result_message = classify_with_selected_model(email_content, user_selected_model)
         final_output.append(result_message)
-    else:
-        result_message = classify_with_default_model(email_content)
-        final_output.append(result_message)
+    # else:
+    #     result_message = classify_with_default_model(email_content)
+    #     final_output.append(result_message)
 
 
     url_pattern = r'(https?://(?:www\.)?[a-zA-Z0-9]+\.[a-zA-Z]{2,}(?:\.[a-zA-Z]{2,})?/?[^\s]*)'
