@@ -191,5 +191,5 @@ LOGGING = {
 }
 
 
-RAZOR_KEY_ID = os.environ.get('RAZOR_KEY_ID')
-RAZOR_KEY_SECRET = os.environ.get('RAZOR_KEY_SECRET')
+RAZORPAY_KEY_ID = os.environ.get('RAZOR_KEY_ID')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZOR_KEY_SECRET')

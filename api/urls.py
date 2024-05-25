@@ -9,8 +9,11 @@ urlpatterns = [
     path('login', LoginView.as_view(), name ='login'),
     path('logout', LogoutView, name='logout'),
     path('home', HomeView, name ='home'),
-    path('payment', PaymentPageView, name ='payment'),
-    path('paymenthandler/', paymenthandler, name='paymenthandler'),
+    path('payamount', PayamountView, name ='payamount'),
+    path('payment', PaymentView, name ='payment'),
+    path('paymentcallbackhandler/', paymentcallbackhandler, name='paymentcallbackhandler'),
+
+
     path('services', ServicesView, name ='services'),
     path('reverify_email', RegenerateVerificationEmailView.as_view(), name='reverify_email'),
     path('api/spam_classifier', SpamClassifierApi.as_view(), name ='api_sc'),    

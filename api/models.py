@@ -1,25 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import BaseUserManager, AbstractBaseUser
-from django.contrib.auth import get_user_model
 import hashlib
+from .constants import PaymentStatus
 
-# User = get_user_model()
-# class UserActivity(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     request_count = models.IntegerField(default=0)
-#     subscription_status = models.BooleanField(default=False)
-#     last_request_time = models.DateTimeField(auto_now=True)
-
-#     def __str__(self):
-#         return f'{self.user.email} - Requests: {self.request_count} - Subscription: {self.subscription_status}'
-
-
-# class Subscription(models.Model):
-#     user = models.ForeignKey(User, on_delete=models.CASCADE)
-#     plan = models.CharField(max_length=50)  # e.g., 'basic', 'premium'
-#     status = models.BooleanField(default=False)  # active/inactive
-#     start_date = models.DateTimeField(auto_now_add=True)
-#     end_date = models.DateTimeField(null=True, blank=True)
 
 class MyUserManager(BaseUserManager):
     def create_user(self, email, name, password=None, is_email_verified=False):
@@ -72,6 +55,26 @@ class MyUser(AbstractBaseUser):
     def is_staff(self):
         "Is the user member of the staff?"
         return self.is_admin
+
+
+class Order(models.Model):
+    email = models.CharField(("Customer Email"), max_length=254, blank=False, null=False)
+    amount = models.FloatField(("Amount"), null=False, blank=False)    
+    status = models.CharField(("Payment Status"),default=PaymentStatus.PENDING, max_length=254,blank=False, null=False,)
+    provider_order_id = models.CharField(("Order ID"), max_length=40, null=False, blank=False)
+    payment_id = models.CharField(("Payment ID"), max_length=36, null=False, blank=False)
+    signature_id = models.CharField(("Signature ID"), max_length=128, null=False, blank=False)
+    def __str__(self):
+        return f"{self.id}-{self.email}-{self.status}"
+
+    def save(self, *args, **kwargs):
+        if self.status == PaymentStatus.SUCCESS:
+            user = MyUser.objects.filter(email=self.email).first() 
+            if user:
+                user.paid = True
+                user.save()
+        super().save(*args, **kwargs)
+
 
 
 class FileModel(models.Model):

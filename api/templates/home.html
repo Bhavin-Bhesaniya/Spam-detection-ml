@@ -12,14 +12,11 @@
     <form method="post">
         {% csrf_token %}
         <button type="submit" class="btn btn-primary" name="generate_token">Generate Your Token</button>
+        <button type="submit" class="btn btn-primary" name="payment"><a href="{% url 'payamount' %}">Pay Now (10 INR)</a></button>
     </form>
     {% endif %}
-
-    <form id="payment-form" method="post">
-        {% csrf_token %}
-        <button type="button" class="btn btn-primary" ><a href="{% url 'payment' %}">Pay Now (10 INR)</a></button>
-    </form>
-
+    
+    
 
     <div class="token-container">
         <h2>JWT Tokens</h2>

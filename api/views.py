@@ -1,3 +1,4 @@
+import json
 import os
 from django.views import View
 from .forms import UserInputForm, RegistrationForm, LoginForm, RegenerateResetEmailForm, ResetPasswordForm
@@ -7,7 +8,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
-from .models import MyUser
+from .models import MyUser, Order
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
@@ -32,16 +33,14 @@ import hashlib
 from api import forms
 import razorpay
 from django.views.decorators.csrf import csrf_exempt
-from django.http import HttpResponseBadRequest
-from django.http import JsonResponse
-
+from .constants import PaymentStatus
 
 import logging
 logger = logging.getLogger('app')
 
-RAZOR_KEY_ID = os.environ.get('RAZOR_KEY_ID')
-RAZOR_KEY_SECRET = os.environ.get('RAZOR_KEY_SECRET')
-razorpay_client = razorpay.Client(auth=(RAZOR_KEY_ID, RAZOR_KEY_SECRET))
+RAZORPAY_KEY_ID = os.environ.get('RAZORPAY_KEY_ID')
+RAZORPAY_KEY_SECRET = os.environ.get('RAZORPAY_KEY_SECRET')
+razorpay_client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
 
 
 def get_tokens_for_user_api(user):
@@ -278,89 +277,91 @@ def HomeView(request):
         user = request.user
         jwttoken = None
         token_generated_today = False
-        # payment_success = request.session.pop('payment_success', False)
-        # payment_cancelled = request.session.pop('payment_cancelled', False)
-        # payment_error = request.session.pop('payment_error', None)
-
         logger.info(f'User with IP {request.META["REMOTE_ADDR"]} accessed the home page. {request.user} is authenticated.')
 
-        if request.method == 'POST' and 'generate_token' in request.POST:
-            cache_key = f"user_token_{user.id}"
-            if cache.get(cache_key):
-                token_generated_today = True
-                logger.info(f'User with IP {request.META["REMOTE_ADDR"]} requested a token, but a token was already generated today for user {user.email}.')
-            if not cache.get(cache_key):
-                jwttoken = get_tokens_for_user_api(user)
-                cache.set(cache_key, True, timedelta(days=1).total_seconds())
-                subject = 'Your Spam Api generate Token'
-                message = f'Please carefully store your token. \n{jwttoken}'
-                from_email = os.environ.get('EMAIL_HOST_USER')
-                recipient_list = [user.email]
-                send_mail(subject, message, from_email, recipient_list)
-                logger.info(f'User with IP {request.META["REMOTE_ADDR"]} successfully requested and received a token. User email: {user.email}')
-    
-        return render(request, 'home.html', {'user': user, 'jwttoken': jwttoken, 'token_generated_today': token_generated_today})
+        if request.method == 'POST':
+            if 'generate_token' in request.POST:
+                cache_key = f"user_token_{user.id}"
+                if cache.get(cache_key):
+                    token_generated_today = True
+                    logger.info(f'User with IP {request.META["REMOTE_ADDR"]} requested a token, but a token was already generated today for user {user.email}.')
+                if not cache.get(cache_key):
+                    jwttoken = get_tokens_for_user_api(user)
+                    cache.set(cache_key, True, timedelta(days=1).total_seconds())
+                    subject = 'Your Spam Api generate Token'
+                    message = f'Please carefully store your token. \n{jwttoken}'
+                    from_email = os.environ.get('EMAIL_HOST_USER')
+                    recipient_list = [user.email]
+                    send_mail(subject, message, from_email, recipient_list)
+                    logger.info(f'User with IP {request.META["REMOTE_ADDR"]} successfully requested and received a token. User email: {user.email}')
+
+            if 'payment' in request.POST:
+                return render(request, "payamount.html")
+
+        context = {
+            'user': user,
+            'jwttoken': jwttoken,
+            'token_generated_today': token_generated_today,            
+        }
+        return render(request, 'home.html', context)
+                
+@login_required(login_url='login')
+def PayamountView(request):
+    return render(request, "payamount.html")
 
 
 @login_required(login_url='login')
-def PaymentPageView(request):
-    form = LoginForm(request.POST)
-    if request.user.is_authenticated:
-        user = request.user
-        currency = 'INR'
-        amount = 100
-        razorpay_order = razorpay_client.order.create(dict(amount=amount, currency=currency,payment_capture='0'))
+def PaymentView(request):
+    if request.method == "POST":
+        email = request.POST.get("email")
+        amount = request.POST.get("amount")
+        client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+        razorpay_order = client.order.create({"amount": int(amount) * 100, "currency": "INR", "payment_capture": "1"})
+        order = Order.objects.create(email=email, amount=amount, provider_order_id=razorpay_order["id"])
+        order.save()
 
-        razorpay_order_id = razorpay_order['id']
-        callback_url = 'paymenthandler/'
-        context = {}
-        context['razorpay_order_id'] = razorpay_order_id
-        context['razorpay_merchant_key'] = RAZOR_KEY_ID
-        context['razorpay_amount'] = amount
-        context['currency'] = currency
-        context['callback_url'] = callback_url
-        context['user_id'] = user.id
-        return render(request, 'payment.html', context=context)
-    else:
-        return render(request, 'login.html', {'form': form})
+        return render(request,"payment.html",
+            {
+                "callback_url": "http://" + "127.0.0.1:8000" + "/paymentcallbackhandler",
+                "razorpay_key": RAZORPAY_KEY_ID,
+                "order": order,
+            },
+        )
+    return render(request, "payment.html")
 
 
 @csrf_exempt
-def paymenthandler(request):
-    if request.method == "POST":
-        try:
-            payment_id = request.POST.get('razorpay_payment_id', '')
-            razorpay_order_id = request.POST.get('razorpay_order_id', '')
-            signature = request.POST.get('razorpay_signature', '')
-            params_dict = {
-                'razorpay_order_id': razorpay_order_id,
-                'razorpay_payment_id': payment_id,
-                'razorpay_signature': signature
-            }
-            result = razorpay_client.utility.verify_payment_signature(params_dict)
-            if result is not None:
-                amount = 100
-                try:
-                    razorpay_client.payment.capture(payment_id, amount)
-                    user_id = request.POST.get('user_id')
-                    user = MyUser.objects.get(id=user_id)
-                    user.paid = True
-                    user.save()
-                    request.session['payment_success'] = True
-                    print('success')
-                    return redirect('home')
-                except:
-                    request.session['payment_error'] = 'Payment failed'
-                    print('failed')
-                    return redirect('home')
-            else:
-                request.session['payment_error'] = 'Payment failed'
-                print('success')
-                return redirect('home')
-        except:
-            return HttpResponseBadRequest()
+def paymentcallbackhandler(request):
+    def verify_signature(response_data):
+        client = razorpay.Client(auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET))
+        return client.utility.verify_payment_signature(response_data)
+
+    if "razorpay_signature" in request.POST:
+        payment_id = request.POST.get("razorpay_payment_id", "")
+        provider_order_id = request.POST.get("razorpay_order_id", "")
+        signature_id = request.POST.get("razorpay_signature", "")
+        order = Order.objects.get(provider_order_id=provider_order_id)
+        order.payment_id = payment_id
+        order.signature_id = signature_id
+        order.save()
+        if not verify_signature(request.POST):
+            order.status = PaymentStatus.SUCCESS
+            order.save()
+            return render(request, "payment_callback.html", context={"status": order.status})
+        else:
+            order.status = PaymentStatus.FAILURE
+            order.save()
+            return render(request, "payment_callback.html", context={"status": order.status})
+    elif "error[metadata]" in request.POST:
+        payment_id = json.loads(request.POST.get("error[metadata]")).get("payment_id", "")
+        provider_order_id = json.loads(request.POST.get("error[metadata]")).get("order_id", "")
+        order = Order.objects.get(provider_order_id=provider_order_id)
+        order.payment_id = payment_id
+        order.status = PaymentStatus.FAILURE
+        order.save()
+        return render(request, "payment_callback.html", context={"status": order.status})
     else:
-        return HttpResponseBadRequest()
+        return render(request, "payment_callback.html", context={"status": PaymentStatus.FAILURE})
 
 
 class SpamClassifierApi(APIView):
@@ -430,6 +431,8 @@ class CustomPasswordResetView(PasswordResetView):
         else:
             logger.warning(f'User with IP {request.META["REMOTE_ADDR"]} submitted an invalid password reset form.')
             return render(request, 'reset/password_reset.html', {'form': form})
+
+
 
 def ServicesView(request):
     return render(request, 'service.html')
