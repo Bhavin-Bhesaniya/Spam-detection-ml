@@ -55,6 +55,6 @@ jobs:
         run: |
           docker volume create mysql_data
           docker run -d -p 3307:3306 --name spam-mysqldb -v mysql_data:/var/lib/mysql/ -e MYSQL_ROOT_PASSWORD={{secrets.MYSQL_ROOT_PASSWORD}} cyberbhavin/spam-mysqldb:latest
-          docker run -d -p 80:8000 --name spam-detection-webapp --link spam-mysqldb:external-mysql cyberbhavin/spam-detection-webapp:latest
+          docker run -d -p 8000:8000 --name spam-detection-webapp --link spam-mysqldb:external-mysql cyberbhavin/spam-detection-webapp:latest
           docker run -d -p 3000:3000 --name grafana grafana/grafana:latest
           docker run -d -p 9090:9090 --name prometheus prom/prometheus:latest
