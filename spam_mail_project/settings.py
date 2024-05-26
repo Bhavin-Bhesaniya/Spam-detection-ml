@@ -12,7 +12,7 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get('SECRET_KEY')
 DEBUG = False
-ALLOWED_HOSTS = ["127.0.0.1", "65.1.45.80", "*"]
+ALLOWED_HOSTS = ["127.0.0.1", "13.232.61.89", "*"]
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -38,7 +38,7 @@ MIDDLEWARE = [
 ]
 
 CSRF_COOKIE_SECURE = True
-CSRF_TRUSTED_ORIGINS = ['https://spamdetector.duckdns.org']
+CSRF_TRUSTED_ORIGINS = ['https://clovinspamdetector.duckdns.org']
 ROOT_URLCONF = 'spam_mail_project.urls'
 
 TEMPLATES = [
