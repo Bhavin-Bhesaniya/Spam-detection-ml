@@ -23,11 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+          fetch-depth: 3 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
   security:
@@ -39,28 +39,28 @@ jobs:
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-      #   with:
-      #     args: --sarif-file-output=snyk.sarif
-      # - name: Upload result to GitHub Code Scanning
-      #   uses: github/codeql-action/upload-sarif@v2
-      #   with:
-      #     sarif_file: snyk.sarif
+        with:
+          args: --sarif-file-output=snyk.sarif
+      - name: Upload result to GitHub Code Scanning
+        uses: github/codeql-action/upload-sarif@v2
+        with:
+          sarif_file: snyk.sarif
 
-  # zap_scan:
-  #   runs-on: ubuntu-latest
-  #   name: Scan the web application
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v2
-  #       with:
-  #         ref: main
-  #     - name: ZAP Scan
-  #       uses: zaproxy/action-baseline@v0.6.1
-  #       with:
-  #         docker_name: 'owasp/zap2docker-stable'
-  #         target: 'http://testphp.vulnweb.com/'
-  #         rules_file_name: '.zap/rules.tsv'
-  #         cmd_options: '-a'
+  zap_scan:
+    runs-on: ubuntu-latest
+    name: Scan the web application
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          ref: main
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.6.1
+        with:
+          docker_name: 'owasp/zap2docker-stable'
+          target: 'http://clovindetector.duckdns.org/'
+          rules_file_name: '.zap/rules.tsv'
+          cmd_options: '-a'
           
   build:
     runs-on: ubuntu-latest
@@ -93,33 +93,33 @@ jobs:
           docker tag spam-mysqldb:latest ${{ secrets.ECR_REGISTRY_2 }}
           docker push ${{ secrets.ECR_REGISTRY_2 }} 
 
-  # terraform:
-  #   needs: build
-  #   name: Terraform Creation
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout
-  #       uses: actions/checkout@v3
+  terraform:
+    needs: build
+    name: Terraform Creation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
 
-  #     - name: Setup Terraform
-  #       uses: hashicorp/setup-terraform@v2
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v2
 
-  #     - name: Terraform Init
-  #       run: terraform init
-  #       working-directory: ./terraform
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform
 
-  #     - name: Terraform Validate
-  #       run: terraform validate
-  #       working-directory: ./terraform
+      - name: Terraform Validate
+        run: terraform validate
+        working-directory: ./terraform
 
-  #     - name: Terraform Plan
-  #       run: terraform plan
-  #       working-directory: ./terraform
-  #       env:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      - name: Terraform Plan
+        run: terraform plan
+        working-directory: ./terraform
+        env:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-  #     - name: Terraform Apply
-  #       run: |
-  #         terraform apply -auto-approve
-  #       working-directory: ./terraform
+      - name: Terraform Apply
+        run: |
+          terraform apply -auto-approve
+        working-directory: ./terraform

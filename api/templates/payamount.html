@@ -1,16 +1,24 @@
-<div class="col-6 mx-auto" style="margin-top:10%;">
-    <form action="{% url 'payment' %}" method='POST'>
+{% extends 'base.html' %}
+
+{% block title %}Payment Amount{% endblock %}
+
+{% block content %}
+<div style="text-align: center; font-size: x-large;">Payment Details Form</div>
+<div>
+    <form action="{% url 'payment' %}" method="POST">
         {% csrf_token %}
         <div class="mb-3">
-            <label for="exampleInputEmail1" class="form-label">Email</label>
+            <label for="exampleInputEmail1" class="form-label">Enter Your Email</label>
             <input type="email" name="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">
         </div>
         <div class="mb-3">
             <label for="exampleInputPassword1" class="form-label">Amount</label>
-            <input type="number" name="amount" class="form-control" id="exampleInputPassword1">
+            <input type="number" name="amount" id="exampleInputPassword1" value="100" readonly>
         </div>
-        <div>
+        
+        <div class="button-container">
             <button type="submit" class="btn btn-primary">Pay Now</button>
         </div>
     </form>
 </div>
+{% endblock %}

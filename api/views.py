@@ -385,10 +385,10 @@ class SpamClassifierApi(APIView):
                     message = classify_spam(email_content, user_selected_model)
                     if message:
                         logger.info(f'Spam detected in the email content submitted by user with IP {request.META["REMOTE_ADDR"]}.')
-                        return Response({"error": "Request processed within limit"}, status=status.HTTP_200_OK)
+                        return Response({"message": f"Request processed + { message } "}, status=status.HTTP_200_OK)
                     else:
                         logger.info(f'No spam detected in the email content submitted by user with IP {request.META["REMOTE_ADDR"]}.')
-                        return Response({"message": "Request processed within limit"}, status=status.HTTP_200_OK)
+                        return Response({"message": f"Request processed + { message }"}, status=status.HTTP_200_OK)
                 except Exception as e:
                     logger.error(f'Error occurred while classifying spam. User IP: {request.META["REMOTE_ADDR"]}, Error: {str(e)}')
                     return Response({"error": "An error occurred while classifying spam."}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
@@ -397,12 +397,9 @@ class SpamClassifierApi(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         else:
             if user.paid:
-                # If user has paid, reset the token count
                 cache.set(token_key, 0, timeout=None)
-                # Your existing spam classification logic here
                 return Response({"message": "Request processed after payment"}, status=status.HTTP_200_OK)
             else:
-                # Prompt for payment
                 payment_message = "Payment required for additional requests. Login in your account and pay"
                 return Response({"error": payment_message}, status=status.HTTP_402_PAYMENT_REQUIRED)
 
