@@ -1,125 +1,125 @@
-name: SPAM Detection CI/CD
+# name: SPAM Detection CI/CD
 
-on:
-  push:
-    branches: ["main"]
+# on:
+#   push:
+#     branches: ["main"]
 
-env:
-  ECR_REGISTRY_1: ${{ secrets.ECR_REGISTRY_1 }}
-  ECR_REGISTRY_2: ${{ secrets.ECR_REGISTRY_2 }}
-  IMAGE_TAG: ${{ github.run_number }}x
-  REPOSITORY_1: spam-detection-webapp
-  REPOSITORY_2: spam-mysqldb
-  DB_NAME: ${{ secrets.DB_NAME }}
-  DB_USER: ${{ secrets.DB_USER }}
-  DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
-  DB_HOST: ${{ secrets.DB_HOST }}
+# env:
+#   ECR_REGISTRY_1: ${{ secrets.ECR_REGISTRY_1 }}
+#   ECR_REGISTRY_2: ${{ secrets.ECR_REGISTRY_2 }}
+#   IMAGE_TAG: ${{ github.run_number }}x
+#   REPOSITORY_1: spam-detection-webapp
+#   REPOSITORY_2: spam-mysqldb
+#   DB_NAME: ${{ secrets.DB_NAME }}
+#   DB_USER: ${{ secrets.DB_USER }}
+#   DB_PASSWORD: ${{ secrets.DB_PASSWORD }}
+#   DB_HOST: ${{ secrets.DB_HOST }}
 
 
-jobs:
-  sonarcloud:
-    name: SonarCloud
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 3 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@master
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+# jobs:
+#   sonarcloud:
+#     name: SonarCloud
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@v3
+#         with:
+#           fetch-depth: 3 
+#       - name: SonarCloud Scan
+#         uses: SonarSource/sonarcloud-github-action@master
+#         env:
+#           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
-  security:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@master
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/python@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --sarif-file-output=snyk.sarif
-      - name: Upload result to GitHub Code Scanning
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: snyk.sarif
+#   security:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - uses: actions/checkout@master
+#       - name: Run Snyk to check for vulnerabilities
+#         uses: snyk/actions/python@master
+#         continue-on-error: true
+#         env:
+#           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+#         with:
+#           args: --sarif-file-output=snyk.sarif
+#       - name: Upload result to GitHub Code Scanning
+#         uses: github/codeql-action/upload-sarif@v2
+#         with:
+#           sarif_file: snyk.sarif
 
-  zap_scan:
-    runs-on: ubuntu-latest
-    name: Scan the web application
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-        with:
-          ref: main
-      - name: ZAP Scan
-        uses: zaproxy/action-baseline@v0.6.1
-        with:
-          docker_name: 'owasp/zap2docker-stable'
-          target: 'http://clovindetector.duckdns.org/'
-          rules_file_name: '.zap/rules.tsv'
-          cmd_options: '-a'
+#   zap_scan:
+#     runs-on: ubuntu-latest
+#     name: Scan the web application
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v3
+#         with:
+#           ref: main
+#       - name: ZAP Scan
+#         uses: zaproxy/action-baseline@v0.6.1
+#         with:
+#           docker_name: 'owasp/zap2docker-stable'
+#           target: 'http://clovindetector.duckdns.org/'
+#           rules_file_name: '.zap/rules.tsv'
+#           cmd_options: '-a'
           
-  build:
-    runs-on: ubuntu-latest
+#   build:
+#     runs-on: ubuntu-latest
 
-    steps:
-      - name: Checkout Source
-        uses: actions/checkout@v3
+#     steps:
+#       - name: Checkout Source
+#         uses: actions/checkout@v3
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v3
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: 'ap-south-1'
+#       - name: Configure AWS credentials
+#         uses: aws-actions/configure-aws-credentials@v3
+#         with:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#           aws-region: 'ap-south-1'
 
-      - name: Login to Amazon ECR
-        id: login-ecr
-        uses: aws-actions/amazon-ecr-login@v1
+#       - name: Login to Amazon ECR
+#         id: login-ecr
+#         uses: aws-actions/amazon-ecr-login@v1
 
-      - name: Build Image
-        run: |
-          docker-compose build spam-mysqldb
-          docker-compose build spam-detection-webapp
+#       - name: Build Image
+#         run: |
+#           docker-compose build spam-mysqldb
+#           docker-compose build spam-detection-webapp
 
-      - name: Tag and push image to ECR_REGISTRY
-        run: |
-          docker tag spam-detection-webapp:latest ${{ secrets.ECR_REGISTRY_1 }}
-          docker push ${{ secrets.ECR_REGISTRY_1 }} 
+#       - name: Tag and push image to ECR_REGISTRY
+#         run: |
+#           docker tag spam-detection-webapp:latest ${{ secrets.ECR_REGISTRY_1 }}
+#           docker push ${{ secrets.ECR_REGISTRY_1 }} 
 
-          docker tag spam-mysqldb:latest ${{ secrets.ECR_REGISTRY_2 }}
-          docker push ${{ secrets.ECR_REGISTRY_2 }} 
+#           docker tag spam-mysqldb:latest ${{ secrets.ECR_REGISTRY_2 }}
+#           docker push ${{ secrets.ECR_REGISTRY_2 }} 
 
-  terraform:
-    needs: build
-    name: Terraform Creation
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
+#   terraform:
+#     needs: build
+#     name: Terraform Creation
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout
+#         uses: actions/checkout@v3
 
-      - name: Setup Terraform
-        uses: hashicorp/setup-terraform@v2
+#       - name: Setup Terraform
+#         uses: hashicorp/setup-terraform@v2
 
-      - name: Terraform Init
-        run: terraform init
-        working-directory: ./terraform
+#       - name: Terraform Init
+#         run: terraform init
+#         working-directory: ./terraform
 
-      - name: Terraform Validate
-        run: terraform validate
-        working-directory: ./terraform
+#       - name: Terraform Validate
+#         run: terraform validate
+#         working-directory: ./terraform
 
-      - name: Terraform Plan
-        run: terraform plan
-        working-directory: ./terraform
-        env:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+#       - name: Terraform Plan
+#         run: terraform plan
+#         working-directory: ./terraform
+#         env:
+#           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+#           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
-      - name: Terraform Apply
-        run: |
-          terraform apply -auto-approve
-        working-directory: ./terraform
+#       - name: Terraform Apply
+#         run: |
+#           terraform apply -auto-approve
+#         working-directory: ./terraform
